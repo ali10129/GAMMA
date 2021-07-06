@@ -1,0 +1,6 @@
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\bin\Debug\G1.exe.config
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\bin\Debug\G1.exe
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\bin\Debug\G1.pdb
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\obj\Debug\G1.csprojResolveAssemblyReference.cache
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\obj\Debug\G1.exe
+c:\users\ali\documents\visual studio 2015\Projects\G1\G1\obj\Debug\G1.pdb
