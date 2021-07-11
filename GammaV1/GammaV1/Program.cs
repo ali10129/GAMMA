@@ -28,17 +28,17 @@ namespace GammaV1
 
         public class PE
         {
-            uint R, bufferSize;
+            public static uint R = 64, bufferSize = 64;
+
             Element[] Amk_ScalingFactorRegFile;
             Element[,] Bkn;
-            Element[,] Cmn;
+            int id;
+            public static float[,] Cmn;
 
 
-            public PE(uint M , uint N, uint R = 64, uint bufferSize = 64)
+            public PE(int M , int N,int id)
             {
-                this.R = R;
-                this.bufferSize = bufferSize;
-
+                this.id = id;
                 Amk_ScalingFactorRegFile = new Element[R];
                 for (uint i = 0; i < R; i++)
                 {
@@ -55,26 +55,64 @@ namespace GammaV1
                         Bkn[i, j].clear();
                     }
                 }
-
-                Cmn = new Element[M, N];
-                for (int i = 0; i < M; i++)
+            }
+            public float[,] calc()
+            {
+                Queue<Element> OUT = merger();
+                Element fromQueue, fromMul, toC;
+                toC = new Element();
+                toC.clear();
+                toC.row = (uint)id;
+                for (int i = 0; i < OUT.Count; i++)
                 {
-                    for (int j = 0; j < N; j++)
+                    fromQueue = OUT.Dequeue();
+                    foreach (var item in Amk_ScalingFactorRegFile)
                     {
-                        Cmn[i, j].clear();
+                        if (item.column == fromQueue.row)
+                        {
+                            fromMul = Mul(fromQueue, item);
+                            if(fromMul.column != toC.column)
+                            {
+                                /***********/
+
+                                Cmn[toC.row, toC.column] += toC.Data;
+                                toC = fromMul;
+                            }
+                            else
+                            {
+                                toC.Data += fromMul.Data;
+                            }
+                        }
                     }
+                    OUT.Enqueue(fromQueue);
                 }
+                Cmn[toC.row, toC.column] += toC.Data;
+
+                return Cmn;
             }
 
-            public uint loadA(Element[] Am, int start = 0)
+            public int loadA(Element[] Am, int start = 0)
             {
-                uint count = 0;
+                int count = 0;
                 for (int i = 0; i < R; i++)
                 {
-                    if(Am[i+start].column %= )
-                    Amk_ScalingFactorRegFile[i]  = 
+                    Amk_ScalingFactorRegFile[i] = Am[i + start];
+                    count = i + start;
                 }
                 return count;
+            }
+
+            public int loadB(Element[,] B, int startRow = 0, int startColumn = 0)
+            {
+                for (int i = startRow; i < startRow + R; i++)
+                {
+                    for (int j = startColumn; j < startColumn + bufferSize; j++)
+                    {
+
+                        Bkn[i, j] = B[i, j];
+                    }
+                }
+                return 0;
             }
 
             public Queue<Element> merger()
@@ -130,6 +168,87 @@ namespace GammaV1
         }
         static void Main(string[] args)
         {
+            Random _random = new Random();
+            int m, n, k;
+            m = 64;
+            n = 64;
+            k = 64;
+
+            float[,] A = new float[m, k];
+            Element[][] Am = new Element[m][];
+
+            float[,] B = new float[k, n];
+            Element[,] Bn = new Element[k, n];
+
+            PE.Cmn = new float[m, n];
+            float[,] C1 = new float[m, n];
+            float[,] C2 = new float[m, n];
+
+            //step 1
+            int tmp = 0;
+            for (int i = 0; i < m; i++)
+            {
+                Am[i] = new Element[k];
+                for (int j = 0; j < k; j++)
+                {
+                    tmp = _random.Next(5);
+                    A[i, j] = tmp < 5 ? tmp : 0;
+                    Am[i][j].Data = A[i, j];
+                    Am[i][j].row = (uint)i;
+                    Am[i][j].column = (uint)j;
+
+                }
+            }
+            for (int i = 0; i < k; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    tmp = _random.Next(5);
+                    B[i, j] = tmp < 5 ? tmp : 0;
+
+                    Bn[i, j].Data = B[i, j];
+                    Bn[i, j].row = (uint)i;
+                    Bn[i, j].column = (uint)j;
+                }
+            }
+
+            PE[] PEs = new PE[m];
+            for (int i = 0; i < m; i++)
+            {
+                PEs[i] = new PE(m, n, i);
+                PEs[i].loadA(Am[i]);
+                PEs[i].loadB(Bn);
+                PEs[i].calc();
+            }
+            C1 = PE.Cmn;
+
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    for (int l = 0; l < k; l++)
+                    {
+                        C2[i, j] += A[i, l] * B[l, j];
+                    }
+                }
+            }
+
+            Console.WriteLine("\n\n\n computer output:");
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    Console.Write(C1[i, j] + ",");
+                    if (C2[i, j] != C1[i, j])
+                    {
+                        Console.WriteLine("Errrrrrrrrrrrorrrrrrrr");
+                    }
+                }
+                Console.WriteLine();
+            }
+
+            Console.ReadKey();
+
         }
     }
 }
