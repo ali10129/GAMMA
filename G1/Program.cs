@@ -177,8 +177,8 @@ namespace G1
                 }
             }
 
-            k1 = k0 + (ulong)(M * K * sizeof(float) + rand.Next(100, 10000) * sizeof(float));
-            k2 = k1 + (ulong)(K * N * sizeof(float) + rand.Next(100, 10000) * sizeof(float));
+            k1 = k0 + (ulong)(M * K * sizeof(float) + rand.Next(1, 16) * 256);
+            k2 = k1 + (ulong)(K * N * sizeof(float) + rand.Next(1, 16) * 256);
 
             ulong A = k0;
             ulong B = k1;
@@ -186,8 +186,8 @@ namespace G1
 
 
             Thread t0 = new Thread(() => inner_product(DataCache0,M,K,N,A,B,C));
-            Thread t1 = new Thread(() => outer_product(DataCache0, M, K, N, A, B, C));
-            Thread t2 = new Thread(() => gustavson(DataCache0, M, K, N, A, B, C));
+            Thread t1 = new Thread(() => outer_product(DataCache1, M, K, N, A, B, C));
+            Thread t2 = new Thread(() => gustavson(DataCache2, M, K, N, A, B, C));
 
             t0.Start();
             t1.Start();
@@ -284,14 +284,14 @@ namespace G1
 
         static void Main(string[] args)
         {
-            System.IO.File.WriteAllText("Inner.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            System.IO.File.AppendAllText("Outer.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            System.IO.File.AppendAllText("Gustavson.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            System.IO.File.WriteAllText("Inner.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            System.IO.File.AppendAllText("Outer.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            System.IO.File.AppendAllText("Gustavson.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             int[] matDims = { 256, 2048, 65536 };   
             uint[] cacheSizes = { 1 };                 //MB
             uint[] blockSizes = { 32 };          //Byte
             uint[] Ways = {8};           // sets = cachesize / (block size * Ways)
-            string txt = "";
+
             int index = 0;
             foreach (var item1 in matDims)
                 foreach (var item2 in matDims)
