@@ -26,16 +26,16 @@ namespace G1
             public string Cache_hitmiss_penalty(uint read_hitCycle=1, uint write_hitCycle=1,uint read_missCycle=10, uint write_missCycle=10)
             {
                 string txt ="";
-                txt += string.Format("\n\n_____________________________________________________________________________");
-                txt += string.Format("Cache with LRU replacement policy");
-                txt += string.Format("Write:\t\tHit:{0,-15}\t\t-->Write Hit Cycle:{1}", write_hit, write_hitCycle);
-                txt += string.Format("Write:\t\tMiss:{0,-15}\t\t-->Write Miss Cycle:{1}", write_miss, write_missCycle);
-                txt += string.Format(("Read:\t\tHit:{0,-15}\t\t-->Read Hit Cycle:{1}", read_hit, read_hitCycle);
-                txt += string.Format("Read:\t\tMiss:{0,-15}\t\t-->Read Miss Cycle:{1}", read_miss, read_missCycle);
+                txt += string.Format("\n\n_____________________________________________________________________________\n");
+                txt += string.Format("Cache with LRU replacement policy\n");
+                txt += string.Format("Write:\t\tHit:{0,-15}\t\t-->Write Hit Cycle:{1}\n", write_hit, write_hitCycle);
+                txt += string.Format("Write:\t\tMiss:{0,-15}\t\t-->Write Miss Cycle:{1}\n", write_miss, write_missCycle);
+                txt += string.Format("Read:\t\tHit:{0,-15}\t\t-->Read Hit Cycle:{1}\n", read_hit, read_hitCycle);
+                txt += string.Format("Read:\t\tMiss:{0,-15}\t\t-->Read Miss Cycle:{1}\n", read_miss, read_missCycle);
                 uint total = read_hit* read_hitCycle +read_miss * read_missCycle + write_hit * write_hitCycle + write_miss * write_missCycle;
 
-                txt += string.Format("\n\n ==============\n\tTotal cycle:\t{0}\n\tNumber of Accesses to the Cache:\t{1}", total, number_of_cache_access);
-                txt += string.Format("\tAverage Access Cycle:\t(Total cycle / Number of Accesses)\t\t{0}", (total/(double)number_of_cache_access));
+                txt += string.Format("\n\n ==============\n\tTotal cycle:\t{0}\n\tNumber of Accesses to the Cache:\t{1}\n", total, number_of_cache_access);
+                txt += string.Format("\tAverage Access Cycle:\t(Total cycle / Number of Accesses)\t\t{0}\n", (total/(double)number_of_cache_access));
                 txt += string.Format("\n_____________________________________________________________________________\n\n");
 
                 return txt;
@@ -141,142 +141,156 @@ namespace G1
             return k0;
         }
 
-        static StringBuilder delta(int dm,int dk, int dn,uint cmb,uint _bsize,uint _asso)
+        static StringBuilder delta(int dm, int dk, int dn, uint cmb, uint _bsize, uint _asso)
         {
-            
+
             var Stt = new StringBuilder();
+
+            Stt.AppendFormat("M={0}\t\tK={1}\t\tN={2}\nCache Size = {3} MB\tBuffersize = {4} Byte\t\t#Ways= {5}\n{0},{1},{2},{3},{4},{5}\n", dm, dk, dn, cmb, _bsize, _asso);
+
+            // total size 8 MB , 256 B block size, 32 Associative in each set, LRU replacement Policy:
+            Cache DataCache0 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
+            Cache DataCache1 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
+            Cache DataCache2 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
+
+            int M = dm;
+            int K = dk;
+            int N = dn;
+
+            float[,] A = new float[M, K];
+            float[,] B = new float[K, N];
+
+            float[,] C = new float[M, N];
+
+            ulong k0, k1, k2;
+
+            unsafe
             {
-
-                // total size 8 MB , 256 B block size, 32 Associative in each set, LRU replacement Policy:
-                Cache DataCache0 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
-                Cache DataCache1 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
-                Cache DataCache2 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
-
-                int M = dm;
-                int K = dk;
-                int N = dn;
-
-                float[,] A = new float[M, K];
-                float[,] B = new float[K, N];
-
-                float[,] C = new float[M, N];
-
-                ulong k0, k1, k2;
-
-                unsafe
+                // Must pin object on heap so that it doesn't move while using interior pointers.
+                fixed (float* p1 = &A[0, 0])
                 {
-                    // Must pin object on heap so that it doesn't move while using interior pointers.
-                    fixed (float* p1 = &A[0, 0])
-                    {
-                        k0 = (ulong)p1;
-                    }
-                    fixed (float* p2 = &B[0, 0])
-                    {
-                        k1 = (ulong)p2;
-                    }
-                    fixed (float* p3 = &C[0, 0])
-                    {
-                        k2 = (ulong)p3;
-                    }
+                    k0 = (ulong)p1;
                 }
+                fixed (float* p2 = &B[0, 0])
+                {
+                    k1 = (ulong)p2;
+                }
+                fixed (float* p3 = &C[0, 0])
+                {
+                    k2 = (ulong)p3;
+                }
+            }
 
 
-                int aa = A.Length * sizeof(float);
-                int bb = B.Length * sizeof(float);
-                int cc = C.Length * sizeof(float);
+            int aa = A.Length * sizeof(float);
+            int bb = B.Length * sizeof(float);
+            int cc = C.Length * sizeof(float);
 
-                /*
-                Console.WriteLine("size of A:{0} in (0x{1:x16})", aa, k0);
-                Console.WriteLine("size of B:{0} in (0x{1:x16})", bb, k1);
-                Console.WriteLine("size of C:{0} in (0x{1:x16})", cc, k2);
-                */
+            /*
+            Console.WriteLine("size of A:{0} in (0x{1:x16})", aa, k0);
+            Console.WriteLine("size of B:{0} in (0x{1:x16})", bb, k1);
+            Console.WriteLine("size of C:{0} in (0x{1:x16})", cc, k2);
+            */
 
-                //inner product
+            //inner product
+            for (int m = 0; m < M; m++)
+            {
+                for (int n = 0; n < N; n++)
+                {
+
+                    DataCache0.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]
+                    float REGISTER = C[m, n];
+
+                    for (int k = 0; k < K; k++)
+                    {
+                        DataCache0.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
+                        DataCache0.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
+
+                        REGISTER += A[m, k] * B[k, n];
+
+                    }
+
+                    DataCache0.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
+                    C[m, n] = REGISTER;
+
+                    //Console.WriteLine("Inner-product dataflow:\t m {0}\t n {1}", m, n);
+                }
+            }
+
+            //outer product
+            for (int k = 0; k < K; k++)
+            {
                 for (int m = 0; m < M; m++)
                 {
+                    DataCache1.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
+                    float REGISTER = A[m, k];
                     for (int n = 0; n < N; n++)
                     {
 
-                        DataCache0.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]
-                        float REGISTER = C[m, n];
+                        DataCache1.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]      
+                        DataCache1.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
 
-                        for (int k = 0; k < K; k++)
-                        {
-                            DataCache0.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
-                            DataCache0.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
+                        C[m, n] += REGISTER * B[k, n];
 
-                            REGISTER += A[m, k] * B[k, n];
+                        DataCache1.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
 
-                        }
-
-                        DataCache0.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
-                        C[m, n] = REGISTER;
-
-                        //Console.WriteLine("Inner-product dataflow:\t m {0}\t n {1}", m, n);
                     }
+                    //Console.WriteLine("Outer-productdataflow:\t k {0}\t m {1}", k, m);
                 }
+            }
 
-                //outer product
+            //Gustavson product
+            for (int m = 0; m < M; m++)
+            {
                 for (int k = 0; k < K; k++)
                 {
-                    for (int m = 0; m < M; m++)
+                    DataCache2.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
+                    float REGISTER = A[m, k];
+                    for (int n = 0; n < N; n++)
                     {
-                        DataCache1.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
-                        float REGISTER = A[m, k];
-                        for (int n = 0; n < N; n++)
-                        {
+                        DataCache2.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]
+                        DataCache2.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
 
-                            DataCache1.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]      
-                            DataCache1.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
+                        C[m, n] += REGISTER * B[k, n];
 
-                            C[m, n] += REGISTER * B[k, n];
-
-                            DataCache1.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
-
-                        }
-                        //Console.WriteLine("Outer-productdataflow:\t k {0}\t m {1}", k, m);
-                    }
-                }
-
-                //Gustavson product
-                for (int m = 0; m < M; m++)
-                {
-                    for (int k = 0; k < K; k++)
-                    {
-                        DataCache2.check_and_put_Data(getElementAddress(A, m, k));       //read A[m,k]
-                        float REGISTER = A[m, k];
-                        for (int n = 0; n < N; n++)
-                        {
-                            DataCache2.check_and_put_Data(getElementAddress(C, m, n));       //read C[m,n]
-                            DataCache2.check_and_put_Data(getElementAddress(B, k, n));       //read B[k,n]
-
-                            C[m, n] += REGISTER * B[k, n];
-
-                            DataCache2.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
-
-                        }
-                        //Console.WriteLine("Gustavson dataflow:\t m {0}\t k {1}", m, k);
+                        DataCache2.check_and_put_Data(getElementAddress(C, m, n), true);       //write C[m,n]
 
                     }
-                }
+                    //Console.WriteLine("Gustavson dataflow:\t m {0}\t k {1}", m, k);
 
-                Stt.AppendLine(string.Format("\n\nM * K * N  = {0}\n\n", M * K * N));
-                Stt.AppendLine(string.Format("=================inter product:====================="));
-                Stt.AppendLine(DataCache0.Cache_hitmiss_penalty());
-                Stt.AppendLine(string.Format("=================outer product:====================="));
-                Stt.AppendLine(DataCache1.Cache_hitmiss_penalty());
-                Stt.AppendLine(string.Format("=================Gustavson product:====================="));
-                Stt.AppendLine(DataCache2.Cache_hitmiss_penalty());
+                }
             }
+
+            Stt.AppendLine(string.Format("\n\nM * K * N  = {0}\n\n", M * K * N));
+            Stt.AppendLine(string.Format("=================inter product:=====================\n"));
+            Stt.AppendLine(DataCache0.Cache_hitmiss_penalty());
+            Stt.AppendLine(string.Format("=================outer product:=====================\n"));
+            Stt.AppendLine(DataCache1.Cache_hitmiss_penalty());
+            Stt.AppendLine(string.Format("=================Gustavson product:=====================\n"));
+            Stt.AppendLine(DataCache2.Cache_hitmiss_penalty());
+
 
             return Stt;
         }
 
         static void Main(string[] args)
         {
+            int[] matDims = { 256, 1024, 2048, 4096, 65536 };   
+            uint[] cacheSizes = { 1, 2, 4, 8 };                 //MB
+            uint[] blockSizes = { 64, 128, 256, 512 };          //Byte
+            uint[] Ways = { 8, 16, 32, 64 };           // sets = cachesize / (block size * Ways)
+            string txt = "";
+            foreach (var item1 in matDims)
+                foreach (var item2 in matDims)
+                    foreach (var item3 in matDims)
+                        foreach (var item4 in cacheSizes)
+                            foreach (var item5 in blockSizes)
+                                foreach (var item6 in Ways)
+                                {
+                                    txt = delta(item1, item2, item3, item4, item5, item6).ToString();
+                                }
 
-
-            Console.ReadKey();
+            System.IO.File.AppendAllText("Vi.txt", txt);
         }
     }
 }
