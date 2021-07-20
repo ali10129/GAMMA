@@ -280,15 +280,21 @@ namespace G1
             uint[] blockSizes = { 64, 128, 256, 512 };          //Byte
             uint[] Ways = { 8, 16, 32, 64 };           // sets = cachesize / (block size * Ways)
             string txt = "";
+            int index = 0;
             foreach (var item1 in matDims)
                 foreach (var item2 in matDims)
                     foreach (var item3 in matDims)
+                    {
+                        Console.Clear();
+                        Console.WriteLine("{0},{1},{2} \t\t in: 256, 1024, 2048, 4096, 65536\n\t==>> {3} / {4}", item1, item2, item3,++index,matDims.Length* matDims.Length * matDims.Length);
                         foreach (var item4 in cacheSizes)
                             foreach (var item5 in blockSizes)
                                 foreach (var item6 in Ways)
                                 {
                                     txt = delta(item1, item2, item3, item4, item5, item6).ToString();
                                 }
+                    }
+                        
 
             System.IO.File.AppendAllText("Vi.txt", txt);
         }
