@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -185,74 +184,18 @@ namespace G1
             ulong B = k1;
             ulong C = k2;
 
-            //inner product
-            for (int m = 0; m < M; m++)
-            {
-                for (int n = 0; n < N; n++)
-                {
 
-                    DataCache0.check_and_put_Data(getElementAddress(C, m, n,N));       //read C[m,n]
-                    //float REGISTER = C[m, n];
+            Thread t0 = new Thread(() => inner_product(DataCache0,M,K,N,A,B,C));
+            Thread t1 = new Thread(() => outer_product(DataCache0, M, K, N, A, B, C));
+            Thread t2 = new Thread(() => gustavson(DataCache0, M, K, N, A, B, C));
 
-                    for (int k = 0; k < K; k++)
-                    {
-                        DataCache0.check_and_put_Data(getElementAddress(A, m, k,K));       //read A[m,k]
-                        DataCache0.check_and_put_Data(getElementAddress(B, k, n,N));       //read B[k,n]
+            t0.Start();
+            t1.Start();
+            t2.Start();
 
-                        //REGISTER += A[m, k] * B[k, n];
-
-                    }
-
-                    DataCache0.check_and_put_Data(getElementAddress(C, m, n,N), true);       //write C[m,n]
-                    //C[m, n] = REGISTER;
-
-                    //Console.WriteLine("Inner-product dataflow:\t m {0}\t n {1}", m, n);
-                }
-            }
-
-            //outer product
-            for (int k = 0; k < K; k++)
-            {
-                for (int m = 0; m < M; m++)
-                {
-                    DataCache1.check_and_put_Data(getElementAddress(A, m, k,K));       //read A[m,k]
-                    //float REGISTER = A[m, k];
-                    for (int n = 0; n < N; n++)
-                    {
-
-                        DataCache1.check_and_put_Data(getElementAddress(C, m, n,N));       //read C[m,n]      
-                        DataCache1.check_and_put_Data(getElementAddress(B, k, n,N));       //read B[k,n]
-
-                        //C[m, n] += REGISTER * B[k, n];
-
-                        DataCache1.check_and_put_Data(getElementAddress(C, m, n,N), true);       //write C[m,n]
-
-                    }
-                    //Console.WriteLine("Outer-productdataflow:\t k {0}\t m {1}", k, m);
-                }
-            }
-
-            //Gustavson product
-            for (int m = 0; m < M; m++)
-            {
-                for (int k = 0; k < K; k++)
-                {
-                    DataCache2.check_and_put_Data(getElementAddress(A, m, k,K));       //read A[m,k]
-                    //float REGISTER = A[m, k];
-                    for (int n = 0; n < N; n++)
-                    {
-                        DataCache2.check_and_put_Data(getElementAddress(C, m, n,N));       //read C[m,n]
-                        DataCache2.check_and_put_Data(getElementAddress(B, k, n,N));       //read B[k,n]
-
-                        //C[m, n] += REGISTER * B[k, n];
-
-                        DataCache2.check_and_put_Data(getElementAddress(C, m, n,N), true);       //write C[m,n]
-
-                    }
-                    //Console.WriteLine("Gustavson dataflow:\t m {0}\t k {1}", m, k);
-
-                }
-            }
+            t0.Join();
+            t1.Join();
+            t2.Join();
 
             Inner.AppendLine(DataCache0.Cache_hitmiss_penalty());
             Outer.AppendLine(DataCache1.Cache_hitmiss_penalty());
@@ -262,15 +205,92 @@ namespace G1
             System.IO.File.AppendAllText("Gustavson.csv", Gustavson.ToString());
         }
 
+        static void inner_product(Cache DataCache0,int M,int K,int N,ulong A,ulong B,ulong C)
+        {
+            //inner product
+            for (int m = 0; m < M; m++)
+            {
+                for (int n = 0; n < N; n++)
+                {
+
+                    DataCache0.check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
+                    //float REGISTER = C[m, n];
+
+                    for (int k = 0; k < K; k++)
+                    {
+                        DataCache0.check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+                        DataCache0.check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+
+                        //REGISTER += A[m, k] * B[k, n];
+
+                    }
+
+                    DataCache0.check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+                    //C[m, n] = REGISTER;
+
+                    //Console.WriteLine("Inner-product dataflow:\t m {0}\t n {1}", m, n);
+                }
+            }
+
+        }
+        static void outer_product(Cache DataCache1, int M, int K, int N, ulong A, ulong B, ulong C)
+        {
+            //outer product
+            for (int k = 0; k < K; k++)
+            {
+                for (int m = 0; m < M; m++)
+                {
+                    DataCache1.check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+                    //float REGISTER = A[m, k];
+                    for (int n = 0; n < N; n++)
+                    {
+
+                        DataCache1.check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]      
+                        DataCache1.check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+
+                        //C[m, n] += REGISTER * B[k, n];
+
+                        DataCache1.check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+
+                    }
+                    //Console.WriteLine("Outer-productdataflow:\t k {0}\t m {1}", k, m);
+                }
+            }
+        }
+        static void gustavson(Cache DataCache2, int M, int K, int N, ulong A, ulong B, ulong C)
+        {
+            //Gustavson product
+            for (int m = 0; m < M; m++)
+            {
+                for (int k = 0; k < K; k++)
+                {
+                    DataCache2.check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+                    //float REGISTER = A[m, k];
+                    for (int n = 0; n < N; n++)
+                    {
+                        DataCache2.check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
+                        DataCache2.check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+
+                        //C[m, n] += REGISTER * B[k, n];
+
+                        DataCache2.check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+
+                    }
+                    //Console.WriteLine("Gustavson dataflow:\t m {0}\t k {1}", m, k);
+
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             System.IO.File.WriteAllText("Inner.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             System.IO.File.AppendAllText("Outer.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             System.IO.File.AppendAllText("Gustavson.csv", "M,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            int[] matDims = { 256, 1024, 2048, 4096, 65536 };   
-            uint[] cacheSizes = { 1, 2, 4, 8 };                 //MB
-            uint[] blockSizes = { 32, 64, 128, 256 };          //Byte
-            uint[] Ways = { 4, 8, 16, 32 };           // sets = cachesize / (block size * Ways)
+            int[] matDims = { 256, 2048, 65536 };   
+            uint[] cacheSizes = { 1 };                 //MB
+            uint[] blockSizes = { 32 };          //Byte
+            uint[] Ways = {8};           // sets = cachesize / (block size * Ways)
             string txt = "";
             int index = 0;
             foreach (var item1 in matDims)
@@ -278,7 +298,8 @@ namespace G1
                     foreach (var item3 in matDims)
                     {
                         Console.Clear();
-                        Console.WriteLine("{0},{1},{2} \t\t in: 256, 1024, 2048, 4096, 65536\n\t==>> {3} / {4}", item1, item2, item3,++index,matDims.Length* matDims.Length * matDims.Length);
+
+                        Console.WriteLine("{0},{1},{2}\n\t==>> {3} / {4}", item1, item2, item3,++index,matDims.Length* matDims.Length * matDims.Length);
                         foreach (var item4 in cacheSizes)
                             foreach (var item5 in blockSizes)
                                 foreach (var item6 in Ways)
