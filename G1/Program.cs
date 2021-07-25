@@ -156,10 +156,10 @@ namespace G1
             Outer.AppendFormat("{0},{1},{2},{3},{4},{5},", dm, dk, dn, cmb, _bsize, _asso);
             Gustavson.AppendFormat("{0},{1},{2},{3},{4},{5},", dm, dk, dn, cmb, _bsize, _asso);
 
-            // total size 8 MB , 256 B block size, 32 Associative in each set, LRU replacement Policy:
-            Cache DataCache0 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
-            Cache DataCache1 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
-            Cache DataCache2 = new Cache(cmb * 1024 * 1024, _bsize, _asso);
+            // total size xxx MB , 256 B block size, 32 Associative in each set, LRU replacement Policy:
+            Cache DataCache0 = new Cache(cmb * 1024 , _bsize, _asso);
+            Cache DataCache1 = new Cache(cmb * 1024 , _bsize, _asso);
+            Cache DataCache2 = new Cache(cmb * 1024 , _bsize, _asso);
 
             int M = dm;
             int K = dk;
@@ -284,13 +284,13 @@ namespace G1
 
         static void Main(string[] args)
         {
-            System.IO.File.WriteAllText("Inner.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            System.IO.File.AppendAllText("Outer.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            System.IO.File.AppendAllText("Gustavson.csv", "\nM,K,N,cache size (MB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            int[] matDims = { 256, 2048, 65536 };   
-            uint[] cacheSizes = { 1 };                 //MB
-            uint[] blockSizes = { 32 };          //Byte
-            uint[] Ways = {8};           // sets = cachesize / (block size * Ways)
+            System.IO.File.WriteAllText("Inner.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            System.IO.File.AppendAllText("Outer.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            System.IO.File.AppendAllText("Gustavson.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
+            int[] matDims = { 2000 };
+            uint[] cacheSizes = { 2, 256 };                //KB
+            uint[] blockSizes = { 16, 64 };          //Byte
+            uint[] Ways = { 2 , 8 , 16 };           // sets = cachesize / (block size * Ways)
 
             int index = 0;
             foreach (var item1 in matDims)
