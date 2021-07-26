@@ -287,10 +287,10 @@ namespace G1
             System.IO.File.WriteAllText("Inner.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             System.IO.File.AppendAllText("Outer.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             System.IO.File.AppendAllText("Gustavson.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
-            int[] matDims = { 2000 };
-            uint[] cacheSizes = { 2, 256 };                //KB
-            uint[] blockSizes = { 16, 64 };          //Byte
-            uint[] Ways = { 2 , 8 , 16 };           // sets = cachesize / (block size * Ways)
+            int[] matDims = { 256 };
+            uint[] cacheSizes = { 4, 256 };                //KB
+            uint[] blockSizes = { 4, 64 };          //Byte
+            uint[] Ways = { 1 , 4 , 16 };           // sets = cachesize / (block size * Ways)
 
             int index = 0;
             foreach (var item1 in matDims)
