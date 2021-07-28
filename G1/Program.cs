@@ -126,22 +126,10 @@ namespace G1
             }
 
         }
-        public static ulong getElementAddress(float[,] t, int i , int j )
-        {
-            ulong k0= 0;
-            unsafe
-            {
-                // Must pin object on heap so that it doesn't move while using interior pointers.
-                fixed (float* p1 = &t[i, j])
-                {
-                    k0 = (ulong)p1;
-                } 
-            }
-            return k0;
-        }
+
         public static ulong getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
         {
-            ulong k0 = a0 + (ulong)((i * floatsize) + j);
+            ulong k0 = a0 + (ulong)((i * floatsize*column_in_row) + j);
             return k0;
         }
         static void delta(int dm, int dk, int dn, uint cmb, uint _bsize, uint _asso)
@@ -288,9 +276,9 @@ namespace G1
             System.IO.File.AppendAllText("Outer.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             System.IO.File.AppendAllText("Gustavson.csv", "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,\n");
             int[] matDims = { 256 };
-            uint[] cacheSizes = { 4, 256 };                //KB
-            uint[] blockSizes = { 4, 64 };          //Byte
-            uint[] Ways = { 1 , 4 , 16 };           // sets = cachesize / (block size * Ways)
+            uint[] cacheSizes = { 2 };                //KB
+            uint[] blockSizes = { 16 };          //Byte
+            uint[] Ways = { 4 };           // sets = cachesize / (block size * Ways)
 
             int index = 0;
             foreach (var item1 in matDims)

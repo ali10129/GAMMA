@@ -1,0 +1,45 @@
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+{10},{10},{10},{2},{16},{4},,,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+{10},{10},{10},{2},{16},{4},0,0,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+{10},{10},{10},{2},{16},{4},45,0,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+256,256,256,2,16,4,1184000,0,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+256,256,256,2,16,4,1118208,0,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+256,256,256,2,16,4,1184000,0,
+
+
+
+M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
+256,256,256,2,16,4,1184000,0,
+
+
