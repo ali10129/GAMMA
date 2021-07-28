@@ -10,6 +10,8 @@
 #include <sstream>
 
 //#include <pthread.h>
+#include<thread>		//To compile programs with std::thread support use:
+						//g++ -std = c++11 -pthread
 
 using namespace std;
 
@@ -392,9 +394,18 @@ static void delta(int dm, int dk, int dn, int cmb, int _bsize, int _asso)
 	long B = k1;
 	long C = k2;
 
-	inner_product0(&DataCache0, M, K, N, A, B, C);
-	outer_product0(&DataCache1, M, K, N, A, B, C);
-	gustavson0(&DataCache2, M, K, N, A, B, C);
+	//inner_product0(&DataCache0, M, K, N, A, B, C);
+	//outer_product0(&DataCache1, M, K, N, A, B, C);
+	//gustavson0(&DataCache2, M, K, N, A, B, C);
+
+	thread t0(inner_product0, &DataCache0, M, K, N, A, B, C);
+	thread t1(outer_product0,&DataCache1, M, K, N, A, B, C);
+	thread t2(gustavson0, &DataCache2, M, K, N, A, B, C);
+
+	t0.join();
+	t1.join();
+	t2.join();
+
 	/*
 	pthread_t t0, t1, t2;
 
@@ -514,5 +525,6 @@ int main(int argc, char *argv[])
 	ofs << std::endl << std::endl;
 	ofs.close();
 
+	cout << "finished successfully!" << endl;
 	return 0;
 }
