@@ -15,6 +15,9 @@
 
 using namespace std;
 
+typedef unsigned long long ulong;
+typedef unsigned int uint;
+
 class Cache
 {
 public:
@@ -29,9 +32,9 @@ public:
 	long* Tags;
 
 
-	int write_hit, write_miss, read_hit, read_miss;
+	ulong write_hit, write_miss, read_hit, read_miss;
 
-	string Cache_hitmiss_penalty(int read_hitCycle = 1, int write_hitCycle = 1, int read_missCycle = 10, int write_missCycle = 10)
+	string Cache_hitmiss_penalty(ulong read_hitCycle = 1, ulong write_hitCycle = 1, ulong read_missCycle = 10, ulong write_missCycle = 10)
 	{
 		string txt = "";
 		txt += to_string(read_miss) + ",";
@@ -128,9 +131,9 @@ private:
 };
 
 
-inline long getElementAddress(long a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
+inline long getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
 {
-	long k0 = a0 + (long)((i * floatsize*column_in_row) + j);
+	ulong k0 = a0 + (ulong)((i * floatsize*column_in_row) + j);
 	return k0;
 }
 /*
@@ -278,7 +281,7 @@ void *gustavson(void* args)
 }
 */
 //void* inner_product(Cache DataCache0, int M, int K, int N, long A, long B, long C)
-void inner_product0(Cache* DataCache0, int M, int K, int N, long A, long B, long C)
+void inner_product0(Cache* DataCache0, int M, int K, int N, ulong A, ulong B, ulong C)
 {
 
 
@@ -307,7 +310,7 @@ void inner_product0(Cache* DataCache0, int M, int K, int N, long A, long B, long
 		}
 	}
 }
-void outer_product0(Cache* DataCache1, int M, int K, int N, long A, long B, long C)
+void outer_product0(Cache* DataCache1, int M, int K, int N, ulong A, ulong B, ulong C)
 {
 	//outer product
 	for (int k = 0; k < K; k++)
@@ -331,7 +334,7 @@ void outer_product0(Cache* DataCache1, int M, int K, int N, long A, long B, long
 		}
 	}
 }
-void gustavson0(Cache* DataCache2, int M, int K, int N, long A, long B, long C)
+void gustavson0(Cache* DataCache2, int M, int K, int N, ulong A, ulong B, ulong C)
 {
 	//Gustavson product
 	for (int m = 0; m < M; m++)
@@ -358,15 +361,8 @@ void gustavson0(Cache* DataCache2, int M, int K, int N, long A, long B, long C)
 
 
 
-static void delta(int dm, int dk, int dn, int cmb, int _bsize, int _asso)
+static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 {
-	char Inner[100];
-	snprintf(Inner, sizeof(Inner), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
-	char Outer[100];
-	snprintf(Outer, sizeof(Outer), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
-	char Gustavson[100];
-	snprintf(Gustavson, sizeof(Gustavson), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
-
 
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 
@@ -379,27 +375,27 @@ static void delta(int dm, int dk, int dn, int cmb, int _bsize, int _asso)
 	int K = dk;
 	int N = dn;
 
-	long k0, k1, k2;
+	ulong k0, k1, k2;
 
 
 	float *As = new float[4, 4];
 
-	k0 = (long)&As;
+	k0 = (ulong)&As;
 
 
-	k1 = k0 + (long)(M * K * sizeof(float) + (rand() % 16) * 256);
-	k2 = k1 + (long)(K * N * sizeof(float) + (rand() % 16) * 256);
+	k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
+	k2 = k1 + (ulong)(K * N * sizeof(float) + (rand() % 16) * 256);
 
-	long A = k0;
-	long B = k1;
-	long C = k2;
+	ulong A = k0;
+	ulong B = k1;
+	ulong C = k2;
 
 	//inner_product0(&DataCache0, M, K, N, A, B, C);
 	//outer_product0(&DataCache1, M, K, N, A, B, C);
 	//gustavson0(&DataCache2, M, K, N, A, B, C);
 
 	thread t0(inner_product0, &DataCache0, M, K, N, A, B, C);
-	thread t1(outer_product0,&DataCache1, M, K, N, A, B, C);
+	thread t1(outer_product0, &DataCache1, M, K, N, A, B, C);
 	thread t2(gustavson0, &DataCache2, M, K, N, A, B, C);
 
 	t0.join();
@@ -450,6 +446,17 @@ static void delta(int dm, int dk, int dn, int cmb, int _bsize, int _asso)
 	pthread_join(t2, &status);
 	*/
 
+
+
+	////////////Save results:///////////////////////////////////////////////////////////////////////////////////////////
+
+	char Inner[100];
+	snprintf(Inner, sizeof(Inner), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
+	char Outer[100];
+	snprintf(Outer, sizeof(Outer), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
+	char Gustavson[100];
+	snprintf(Gustavson, sizeof(Gustavson), "%d,%d,%d,%d,%d,%d,", dm, dk, dn, cmb, _bsize, _asso);
+
 	string I = "", O = "", G = "";
 
 	I = string(Inner);
@@ -460,6 +467,9 @@ static void delta(int dm, int dk, int dn, int cmb, int _bsize, int _asso)
 	O += DataCache1.Cache_hitmiss_penalty() + "\n";
 	G += DataCache2.Cache_hitmiss_penalty() + "\n";
 
+	cout << "inner:\t" << I << endl;
+	cout << "outer:\t" << O << endl;
+	cout << "gustav:\t" << G << endl;
 
 	ofstream ofs;
 	ofs.open("Inner.csv", std::ofstream::out | std::ofstream::app);
@@ -487,7 +497,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	int Data[6];
+	uint Data[6];
 	for (int i = 0; i < 6; i++) {
 		std::stringstream ss(argv[i + 1]);
 		if (ss >> Data[i])
@@ -496,9 +506,10 @@ int main(int argc, char *argv[])
 			std::cout << "error";
 	}
 
+	cout << sizeof(uint) << sizeof(ulong);
 
-
-	ofstream ofs;
+	//ofstream ofs;
+	/*
 	ofs.open("Inner.csv", std::ofstream::out | std::ofstream::app);
 	ofs << "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss," << std::endl;
 	ofs.close();
@@ -510,9 +521,11 @@ int main(int argc, char *argv[])
 	ofs.open("Gustavson.csv", std::ofstream::out | std::ofstream::app);
 	ofs << "\nM,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss," << std::endl;
 	ofs.close();
+	*/
 
 	delta(Data[0], Data[1], Data[2], Data[3], Data[4], Data[5]);
 
+	/*
 	ofs.open("Inner.csv", std::ofstream::out | std::ofstream::app);
 	ofs << std::endl << std::endl;
 	ofs.close();
@@ -524,6 +537,7 @@ int main(int argc, char *argv[])
 	ofs.open("Gustavson.csv", std::ofstream::out | std::ofstream::app);
 	ofs << std::endl << std::endl;
 	ofs.close();
+	*/
 
 	cout << "finished successfully!" << endl;
 	return 0;

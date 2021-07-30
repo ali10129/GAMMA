@@ -43,3 +43,4 @@ M,K,N,cache size (KB),block size (Byte),# of ways,# of read miss,# write miss,
 256,256,256,2,16,4,1184000,0,
 
 
+256,256,256,2,16,4,1118208,0,
