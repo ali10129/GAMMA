@@ -474,15 +474,15 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	cout << "gustav:\t" << G << endl;
 
 	ofstream ofs;
-	ofs.open("Inner.csv", std::ofstream::out | std::ofstream::app);
+	ofs.open("_Inner.csv", std::ofstream::out | std::ofstream::app);
 	ofs << I.c_str();
 	ofs.close();
 
-	ofs.open("Outer.csv", std::ofstream::out | std::ofstream::app);
+	ofs.open("_Outer.csv", std::ofstream::out | std::ofstream::app);
 	ofs << O.c_str();
 	ofs.close();
 
-	ofs.open("Gustavson.csv", std::ofstream::out | std::ofstream::app);
+	ofs.open("_Gustavson.csv", std::ofstream::out | std::ofstream::app);
 	ofs << G.c_str();
 	ofs.close();
 }
