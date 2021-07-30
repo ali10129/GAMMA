@@ -131,7 +131,7 @@ private:
 };
 
 
-inline long getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
+inline ulong getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
 {
 	ulong k0 = a0 + (ulong)((i * floatsize*column_in_row) + j);
 	return k0;
@@ -364,7 +364,7 @@ void gustavson0(Cache* DataCache2, int M, int K, int N, ulong A, ulong B, ulong 
 static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 {
 
-	std::srand(std::time(nullptr)); // use current time as seed for random generator
+	
 
 	// total size xxx Kb , 256 B block size, 32 Associative in each set, LRU replacement Policy:
 	Cache DataCache0 = Cache(cmb * 1024, _bsize, _asso);
@@ -379,10 +379,9 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 
 
 	float *As = new float[4, 4];
-
 	k0 = (ulong)&As;
 
-
+	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
 	k2 = k1 + (ulong)(K * N * sizeof(float) + (rand() % 16) * 256);
 
@@ -506,7 +505,6 @@ int main(int argc, char *argv[])
 			std::cout << "error";
 	}
 
-	cout << sizeof(uint) << sizeof(ulong);
 
 	//ofstream ofs;
 	/*
