@@ -15,21 +15,24 @@
 
 using namespace std;
 
-typedef unsigned long long ulong;
+
+
+typedef unsigned long ulong;
+//typedef unsigned long long ulong;			// if using windows OS uncomment this.
 typedef unsigned int uint;
 
 class Cache
 {
 public:
-	int data_cache_size;
-	int block_size;
-	int n_ways;
+	uint data_cache_size;
+	uint block_size;
+	uint n_ways;
 
-	int number_of_cache_access = 0;
+	ulong number_of_cache_access = 0;
 
-	int n_sets;
+	uint n_sets;
 
-	long* Tags;
+	ulong* Tags;
 
 
 	ulong write_hit, write_miss, read_hit, read_miss;
@@ -43,7 +46,7 @@ public:
 	}
 
 
-	Cache(int total_cache_size_in_byte, int block_size_in_byte, int num_ways)
+	Cache(uint total_cache_size_in_byte, uint block_size_in_byte, uint num_ways)
 	{
 		n_ways = num_ways;
 		data_cache_size = total_cache_size_in_byte;
@@ -52,10 +55,10 @@ public:
 
 		n_sets = total_cache_size_in_byte / (block_size_in_byte * num_ways);
 
-		Tags = new long[n_sets*n_ways * 2];
-		for (int i = 0; i < n_sets; i++)
+		Tags = new ulong[n_sets*n_ways * 2];
+		for (uint i = 0; i < n_sets; i++)
 		{
-			for (int j = 0; j < n_ways; j++)
+			for (uint j = 0; j < n_ways; j++)
 			{
 				Tags(i, j, 0) = 0;
 				Tags(i, j, 1) = j;
@@ -63,13 +66,13 @@ public:
 		}
 	}
 
-	bool check_and_put_Data(long address, bool write = false)
+	bool check_and_put_Data(ulong address, bool write = false)
 	{
 		// return True if hit, return False if miss;
 		number_of_cache_access++;
 
-		long index_bits = (address / block_size) % n_sets;
-		long tag = (address / block_size) / n_sets;
+		ulong index_bits = (address / block_size) % n_sets;
+		ulong tag = (address / block_size) / n_sets;
 
 		bool hit = putData(tag, index_bits);
 
@@ -94,11 +97,11 @@ public:
 	}
 
 private: 
-	bool putData(long tag, long index)
+	bool putData(ulong tag, ulong index)
 	{
 		bool hit = false;
-		long block_id = 0;
-		for (int i = 0; i < n_ways; i++)
+		ulong block_id = 0;
+		for (uint i = 0; i < n_ways; i++)
 		{
 			if (Tags(index, i, 0) == tag)
 			{
@@ -111,7 +114,7 @@ private:
 		}
 
 		//LRU replacement Policy
-		for (int i = 0; i < n_ways; i++)
+		for (uint i = 0; i < n_ways; i++)
 		{
 			if (Tags(index, i, 1) < block_id)
 			{
@@ -492,7 +495,7 @@ int main(int argc, char *argv[])
 {
 	if (argc != 7) {
 		cout << "Invalid input arguments error!\nYou should input 6 integer arguments as:\nM K N Cache_size(KB) Block_size(B) #_of_Ways\nExit -1" << endl;
-		cin >> argc;
+		//cin >> argc;
 		return -1;
 	}
 
@@ -505,7 +508,7 @@ int main(int argc, char *argv[])
 			std::cout << "error";
 	}
 
-
+	//cout << "size of int: " << sizeof(uint) << "\tsize of long: " << sizeof(ulong);
 	//ofstream ofs;
 	/*
 	ofs.open("Inner.csv", std::ofstream::out | std::ofstream::app);
@@ -537,7 +540,7 @@ int main(int argc, char *argv[])
 	ofs.close();
 	*/
 
-	cout << "finished successfully!" << endl;
+	cout << "finished successfully!" << endl << endl;
 	return 0;
 }
 
