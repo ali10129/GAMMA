@@ -243,3 +243,5 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/G1 C version/G1 C version/Results.csv
+/G1 C version/G1 C version/_Hammering Results.csv
