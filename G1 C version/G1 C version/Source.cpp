@@ -75,6 +75,7 @@ private:
 		string txt = "";
 		txt += to_string(read_miss) + ",";
 		txt += to_string(write_miss) + ",";
+		txt += to_string(read_miss + write_miss) + ",";
 		return txt;
 	}
 
@@ -141,7 +142,7 @@ public:
 	static void info(Cache* c0, Cache* c1 , Cache* c2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename="Results.csv")
 	{
 		char buffer[100];
-		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,==>{IN|OUT|Gus}[R miss|W miss], ,", dm, dk, dn, cmb, _bsize, _asso);
+		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,==>{IN|OUT|Gus}[R miss|W miss|R+W miss], ,", dm, dk, dn, cmb, _bsize, _asso);
 
 		string I = "";
 
@@ -169,16 +170,16 @@ public:
 		ofs.close();
 	}
 
-	static void Hammer_results(Cache* C0,Cache* C1,Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
+	static void _Trashing_Results(Cache* C0,Cache* C1,Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	{
-		string txt = "\n" + to_string(dm) + "," + to_string(dk) + "," + to_string(dn) + "," + to_string(cmb) + "," + to_string(_bsize) + "," + to_string(_asso) + ",\n";
+		string txt = "\n==============\n" + to_string(dm) + "," + to_string(dk) + "," + to_string(dn) + "," + to_string(cmb) + "," + to_string(_bsize) + "," + to_string(_asso) + ",\n";
 		txt += "# of set,Inner,Outer,Gustovson,\n";
 		for (int i = 0; i < C0->n_sets; i++)
 		{
 			txt += to_string(i) + "," + to_string(C0->n_hammer[i]) + "," + to_string(C1->n_hammer[i]) + "," + to_string(C2->n_hammer[i]) + ",\n";
 		}
 		ofstream ofs;
-		ofs.open("_Hammering Results.csv", std::ofstream::out | std::ofstream::app);
+		ofs.open("_Trashing_Results.csv", std::ofstream::out | std::ofstream::app);
 		ofs << txt.c_str();
 		ofs.close();
 	}
@@ -317,7 +318,7 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 
 	////////////Save results:///////////////////////////////////////////////////////////////////////////////////////////
 	Cache::info(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
-	Cache::Hammer_results(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
+	Cache::_Trashing_Results(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
 }
 
 int main(int argc, char *argv[])
