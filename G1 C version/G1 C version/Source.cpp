@@ -206,7 +206,6 @@ void inner_product0(Cache* DataCache0, int M, int K, int N, ulong A, ulong B, ul
 			DataCache0->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 																					   //C[m, n] = REGISTER;
 
-																					   //Console.WriteLine("Inner-product dataflow:\t m {0}\t n {1}", m, n);
 		}
 	}
 }
@@ -263,7 +262,7 @@ void gustavson0(Cache* DataCache2, int M, int K, int N, ulong A, ulong B, ulong 
 
 static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 {
-	std::srand(std::time(nullptr)); // use current time as seed for random generator
+	//std::srand(std::time(nullptr)); // use current time as seed for random generator
 
 	// total size xxx Kb , xxx B block size, xxx Associative in each set, LRU replacement Policy:
 	Cache DataCache0 = Cache(cmb * 1024, _bsize, _asso);
@@ -274,13 +273,9 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	int K = dk;
 	int N = dn;
 
-	ulong k0, k1, k2;
-
-
-	float *As = new float[4, 4];
-	
+	//float *As = new float[4, 4];
 	//k0 = (ulong)&As;
-
+	ulong k0, k1, k2;
 	k0 = 0xF0000000;
 	k1 = k0 + (ulong)(M * K * sizeof(float) );		//k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
 	k2 = k1 + (ulong)(K * N * sizeof(float) );		//k2 = k1 + (ulong)(K * N * sizeof(float) + (rand() % 16) * 256);
@@ -297,18 +292,10 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	t1.join();
 	t2.join();
 
-
-
-
 	////////////Save results:///////////////////////////////////////////////////////////////////////////////////////////
 	Cache::info(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
 	Cache::Hammer_results(&DataCache0, &DataCache1, &DataCache2);
-	
 }
-
-
-
-
 
 int main(int argc, char *argv[])
 {
