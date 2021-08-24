@@ -80,7 +80,7 @@ private:
 
 
 public:
-
+	ulong mA = 0, mB = 0, mC = 0;
 	Cache(uint total_cache_size_in_byte, uint block_size_in_byte, uint num_ways)
 	{
 		n_ways = num_ways;
@@ -104,7 +104,7 @@ public:
 		}
 	}
 
-	bool check_and_put_Data(ulong address, bool write = false)
+	int check_and_put_Data(ulong address, bool write = false)
 	{
 		// return True if hit, return False if miss;
 		number_of_cache_access++;
@@ -135,7 +135,7 @@ public:
 			n_hammer[index_bits]++;
 		}
 
-		return hit;
+		return hit ? 0 : 1;
 	}
 
 	static void info(Cache* c0, Cache* c1 , Cache* c2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename="Results.csv")
@@ -148,7 +148,18 @@ public:
 		I = string(buffer);
 
 
-		I += c0->Cache_hitmiss_penalty() + " ," + c1->Cache_hitmiss_penalty() + " ," + c2->Cache_hitmiss_penalty() + "\n";
+		I += c0->Cache_hitmiss_penalty() + " ," + c1->Cache_hitmiss_penalty() + " ," + c2->Cache_hitmiss_penalty() + ", {IN|OUT|Gus}[A miss|B miss|C miss],";
+		I += to_string(c0->mA) + ",";
+		I += to_string(c0->mB) + ",";
+		I += to_string(c0->mC) + ",|||,";
+
+		I += to_string(c1->mA) + ",";
+		I += to_string(c1->mB) + ",";
+		I += to_string(c1->mC) + ",|||,";
+
+		I += to_string(c2->mA) + ",";
+		I += to_string(c2->mB) + ",";
+		I += to_string(c2->mC) + ",\n";
 
 		cout << filename << ":\t"<< I << endl;
 
@@ -174,7 +185,6 @@ public:
 
 };
 
-
 inline ulong getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
 {
 	ulong k0 = a0 + (ulong)((i * floatsize*column_in_row) + j);
@@ -183,79 +193,92 @@ inline ulong getElementAddress(ulong a0, int i, int j, int column_in_row, int fl
 
 void inner_product0(Cache* DataCache0, int M, int K, int N, ulong A, ulong B, ulong C)
 {
-
-
+	ulong mA = 0, mB = 0, mC = 0;
 	//inner product
 	for (int m = 0; m < M; m++)
 	{
 		for (int n = 0; n < N; n++)
 		{
 
-			DataCache0->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
+			mC += DataCache0->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
 																				 //float REGISTER = C[m, n];
 
 			for (int k = 0; k < K; k++)
 			{
-				DataCache0->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
-				DataCache0->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+				mA += DataCache0->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+				mB += DataCache0->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
 
 																					 //REGISTER += A[m, k] * B[k, n];
 
 			}
 
-			DataCache0->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+			mC += DataCache0->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 																					   //C[m, n] = REGISTER;
 
 		}
 	}
+	cout <<"Inner product:\tmisses of A: "<< mA <<"\t B: " << mB <<"\t C: " << mC <<endl;
+	DataCache0->mA = mA;
+	DataCache0->mB = mB;
+	DataCache0->mC = mC;
 }
 void outer_product0(Cache* DataCache1, int M, int K, int N, ulong A, ulong B, ulong C)
 {
+	ulong mA = 0, mB = 0, mC = 0;
 	//outer product
 	for (int k = 0; k < K; k++)
 	{
 		for (int m = 0; m < M; m++)
 		{
-			DataCache1->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+			mA += DataCache1->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
 																				//float REGISTER = A[m, k];
 			for (int n = 0; n < N; n++)
 			{
 
-				DataCache1->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]      
-				DataCache1->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+				mC += DataCache1->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]      
+				mB += DataCache1->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
 
 																					//C[m, n] += REGISTER * B[k, n];
 
-				DataCache1->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+				mC += DataCache1->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 
 			}
 			//Console.WriteLine("Outer-productdataflow:\t k {0}\t m {1}", k, m);
 		}
 	}
+	cout << "Outer product:\tmisses of A: " << mA << "\t B: " << mB << "\t C: " << mC << endl;
+	DataCache1->mA = mA;
+	DataCache1->mB = mB;
+	DataCache1->mC = mC;
 }
 void gustavson0(Cache* DataCache2, int M, int K, int N, ulong A, ulong B, ulong C)
 {
+	ulong mA = 0, mB = 0, mC = 0;
 	//Gustavson product
 	for (int m = 0; m < M; m++)
 	{
 		for (int k = 0; k < K; k++)
 		{
-			DataCache2->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
+			mA += DataCache2->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
 																				 //float REGISTER = A[m, k];
 			for (int n = 0; n < N; n++)
 			{
-				DataCache2->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
-				DataCache2->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+				mC += DataCache2->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
+				mB += DataCache2->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
 
 																					 //C[m, n] += REGISTER * B[k, n];
 
-				DataCache2->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
+				mC += DataCache2->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 
 			}
 			//Console.WriteLine("Gustavson dataflow:\t m {0}\t k {1}", m, k);
 
 		}
 	}
+	cout << "Gustavson product:\tmisses of A: " << mA << "\t B: " << mB << "\t C: " << mC << endl;
+	DataCache2->mA = mA;
+	DataCache2->mB = mB;
+	DataCache2->mC = mC;
 }
 
 
@@ -317,6 +340,7 @@ int main(int argc, char *argv[])
 	delta(Data[0], Data[1], Data[2], Data[3], Data[4], Data[5]);
 
 	cout << "finished successfully!" << endl << endl;
+	cin >> Data[0];
 	return 0;
 }
 
