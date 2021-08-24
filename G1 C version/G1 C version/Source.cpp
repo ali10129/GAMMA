@@ -158,9 +158,10 @@ public:
 		ofs.close();
 	}
 
-	static void Hammer_results(Cache* C0,Cache* C1,Cache* C2)
+	static void Hammer_results(Cache* C0,Cache* C1,Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	{
-		string txt = "# of set,Inner,Outer,Gustovson,\n";
+		string txt = "\n" + to_string(dm) + "," + to_string(dk) + "," + to_string(dn) + "," + to_string(cmb) + "," + to_string(_bsize) + "," + to_string(_asso) + ",\n";
+		txt += "# of set,Inner,Outer,Gustovson,\n";
 		for (int i = 0; i < C0->n_sets; i++)
 		{
 			txt += to_string(i) + "," + to_string(C0->n_hammer[i]) + "," + to_string(C1->n_hammer[i]) + "," + to_string(C2->n_hammer[i]) + ",\n";
