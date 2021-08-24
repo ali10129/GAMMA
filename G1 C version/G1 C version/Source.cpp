@@ -294,7 +294,7 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 
 	////////////Save results:///////////////////////////////////////////////////////////////////////////////////////////
 	Cache::info(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
-	Cache::Hammer_results(&DataCache0, &DataCache1, &DataCache2);
+	Cache::Hammer_results(&DataCache0, &DataCache1, &DataCache2, dm, dk, dn, cmb, _bsize, _asso);
 }
 
 int main(int argc, char *argv[])
