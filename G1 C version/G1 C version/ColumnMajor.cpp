@@ -11,7 +11,7 @@
 
 //#include <pthread.h>
 #include<thread>		//To compile programs with std::thread support use:
-						//g++ -std = c++11 -pthread
+//g++ -std = c++11 -pthread
 
 using namespace std;
 
@@ -139,7 +139,7 @@ public:
 		return hit ? 0 : 1;
 	}
 
-	static void info(Cache* c0, Cache* c1 , Cache* c2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename="_Results.csv")
+	static void info(Cache* c0, Cache* c1, Cache* c2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename = "_Results_ColumnMajor.csv")
 	{
 		char buffer[100];
 		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,==>{IN|OUT|Gus}[R miss|W miss|R+W miss], ,", dm, dk, dn, cmb, _bsize, _asso);
@@ -162,7 +162,7 @@ public:
 		I += to_string(c2->mB) + ",";
 		I += to_string(c2->mC) + ",\n";
 
-		cout << filename << ":\t"<< I << endl;
+		cout << filename << ":\t" << I << endl;
 
 		ofstream ofs;
 		ofs.open(filename, std::ofstream::out | std::ofstream::app);
@@ -170,7 +170,7 @@ public:
 		ofs.close();
 	}
 
-	static void _Trashing_Results(Cache* C0,Cache* C1,Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
+	static void _Trashing_Results(Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	{
 		string txt = "\n==============\n" + to_string(dm) + "," + to_string(dk) + "," + to_string(dn) + "," + to_string(cmb) + "," + to_string(_bsize) + "," + to_string(_asso) + ",\n";
 		txt += "# of set,Inner,Outer,Gustovson,\n";
@@ -179,7 +179,7 @@ public:
 			txt += to_string(i) + "," + to_string(C0->n_hammer[i]) + "," + to_string(C1->n_hammer[i]) + "," + to_string(C2->n_hammer[i]) + ",\n";
 		}
 		ofstream ofs;
-		ofs.open("_Trashing_Results.csv", std::ofstream::out | std::ofstream::app);
+		ofs.open("_Trashing_Results_ColumnMajor.csv", std::ofstream::out | std::ofstream::app);
 		ofs << txt.c_str();
 		ofs.close();
 	}
@@ -202,23 +202,23 @@ void inner_product0(Cache* DataCache0, int M, int K, int N, ulong A, ulong B, ul
 		{
 
 			mC += DataCache0->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
-																				 //float REGISTER = C[m, n];
+																					   //float REGISTER = C[m, n];
 
 			for (int k = 0; k < K; k++)
 			{
 				mA += DataCache0->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
-				mB += DataCache0->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
+				mB += DataCache0->check_and_put_Data(getElementAddress(B, n, k, K));       //read B[k,n] =====> B.T[n,k]
 
-																					 //REGISTER += A[m, k] * B[k, n];
+																						   //REGISTER += A[m, k] * B[k, n]; ===> REGISTER += A[m, k] * B.T[n,k];
 
 			}
 
 			mC += DataCache0->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
-																					   //C[m, n] = REGISTER;
+																							 //C[m, n] = REGISTER;
 
 		}
 	}
-	cout <<"Inner product:\tmisses of A: "<< mA <<"\t B: " << mB <<"\t C: " << mC <<endl;
+	cout << "Inner product:\tmisses of A: " << mA << "\t B: " << mB << "\t C: " << mC << endl;
 	DataCache0->mA = mA;
 	DataCache0->mB = mB;
 	DataCache0->mC = mC;
@@ -231,15 +231,15 @@ void outer_product0(Cache* DataCache1, int M, int K, int N, ulong A, ulong B, ul
 	{
 		for (int m = 0; m < M; m++)
 		{
-			mA += DataCache1->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
-																				//float REGISTER = A[m, k];
+			mA += DataCache1->check_and_put_Data(getElementAddress(A, k, m, M));       //read A[m,k] =====> A.T[k,m]
+																					   //float REGISTER = A.T[k,m];
 			for (int n = 0; n < N; n++)
 			{
 
 				mC += DataCache1->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]      
 				mB += DataCache1->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
 
-																					//C[m, n] += REGISTER * B[k, n];
+																						   //C[m, n] += REGISTER * B[k, n];
 
 				mC += DataCache1->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 
@@ -261,13 +261,13 @@ void gustavson0(Cache* DataCache2, int M, int K, int N, ulong A, ulong B, ulong 
 		for (int k = 0; k < K; k++)
 		{
 			mA += DataCache2->check_and_put_Data(getElementAddress(A, m, k, K));       //read A[m,k]
-																				 //float REGISTER = A[m, k];
+																					   //float REGISTER = A[m, k];
 			for (int n = 0; n < N; n++)
 			{
 				mC += DataCache2->check_and_put_Data(getElementAddress(C, m, n, N));       //read C[m,n]
 				mB += DataCache2->check_and_put_Data(getElementAddress(B, k, n, N));       //read B[k,n]
 
-																					 //C[m, n] += REGISTER * B[k, n];
+																						   //C[m, n] += REGISTER * B[k, n];
 
 				mC += DataCache2->check_and_put_Data(getElementAddress(C, m, n, N), true);       //write C[m,n]
 
@@ -301,8 +301,8 @@ static void delta(uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
 	//k0 = (ulong)&As;
 	ulong k0, k1, k2;
 	k0 = 0xF0000000;
-	k1 = k0 + (ulong)(M * K * sizeof(float) );		//k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
-	k2 = k1 + (ulong)(K * N * sizeof(float) );		//k2 = k1 + (ulong)(K * N * sizeof(float) + (rand() % 16) * 256);
+	k1 = k0 + (ulong)(M * K * sizeof(float));		//k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
+	k2 = k1 + (ulong)(K * N * sizeof(float));		//k2 = k1 + (ulong)(K * N * sizeof(float) + (rand() % 16) * 256);
 
 	ulong A = k0;
 	ulong B = k1;
