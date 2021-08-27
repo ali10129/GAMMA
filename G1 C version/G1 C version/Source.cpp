@@ -76,6 +76,8 @@ private:
 		txt += to_string(read_miss) + ",";
 		txt += to_string(write_miss) + ",";
 		txt += to_string(read_miss + write_miss) + ",";
+		//txt += to_string(read_miss + write_miss + read_hit + write_hit) + ",";
+		txt += to_string(number_of_cache_access)+ ",";
 		return txt;
 	}
 
@@ -105,7 +107,7 @@ public:
 		}
 	}
 
-	int check_and_put_Data(ulong address, bool write = false)
+	uint check_and_put_Data(ulong address, bool write = false)
 	{
 		// return True if hit, return False if miss;
 		number_of_cache_access++;
@@ -136,7 +138,10 @@ public:
 			n_hammer[index_bits]++;
 		}
 
-		return hit ? 0 : 1;
+		if (hit) 
+			return 0;
+		else
+			return 1;
 	}
 
 	static void info(Cache* c0, Cache* c1 , Cache* c2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename="_Results.csv")
@@ -152,15 +157,18 @@ public:
 		I += c0->Cache_hitmiss_penalty() + " ," + c1->Cache_hitmiss_penalty() + " ," + c2->Cache_hitmiss_penalty() + ", {IN|OUT|Gus}[A miss|B miss|C miss],";
 		I += to_string(c0->mA) + ",";
 		I += to_string(c0->mB) + ",";
-		I += to_string(c0->mC) + ",|||,";
+		I += to_string(c0->mC) + ",";
+		I += to_string(c0->mA + c0->mB + c0->mC) + ",|||,";
 
 		I += to_string(c1->mA) + ",";
 		I += to_string(c1->mB) + ",";
-		I += to_string(c1->mC) + ",|||,";
+		I += to_string(c1->mC) + ",";
+		I += to_string(c1->mA + c1->mB + c1->mC) + ",|||,";
 
 		I += to_string(c2->mA) + ",";
 		I += to_string(c2->mB) + ",";
-		I += to_string(c2->mC) + ",\n";
+		I += to_string(c2->mC) + ",";
+		I += to_string(c2->mA + c2->mB + c2->mC) + ",\n";
 
 		cout << filename << ":\t"<< I << endl;
 

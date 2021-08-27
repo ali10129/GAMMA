@@ -73,9 +73,11 @@ private:
 	string Cache_hitmiss_penalty(ulong read_hitCycle = 1, ulong write_hitCycle = 1, ulong read_missCycle = 10, ulong write_missCycle = 10)
 	{
 		string txt = "";
-		//txt += to_string(read_miss) + ",";
-		//txt += to_string(write_miss) + ",";
-		txt += to_string(read_miss + write_miss);
+		txt += to_string(read_miss) + ",";
+		txt += to_string(write_miss) + ",";
+		txt += to_string(read_miss + write_miss) + ",";
+		//txt += to_string(read_miss + write_miss + read_hit + write_hit) + ",";
+		txt += to_string(number_of_cache_access) + ",";
 		return txt;
 	}
 
@@ -109,7 +111,7 @@ public:
 		}
 	}
 
-	int check_and_put_Data(ulong address, bool write = false)
+	uint check_and_put_Data(ulong address, bool write = false)
 	{
 		// return True if hit, return False if miss;
 		number_of_cache_access++;
@@ -140,7 +142,10 @@ public:
 			n_hammer[index_bits]++;
 		}
 
-		return hit ? 0 : 1;
+		if (hit)
+			return 0;
+		else
+			return 1;
 	}
 
 
