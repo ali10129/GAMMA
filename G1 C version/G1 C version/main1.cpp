@@ -1,3 +1,5 @@
+#define filename00 "main1.csv"
+
 #include <iostream>
 
 #include <cstdlib>
@@ -14,8 +16,6 @@
 //g++ -std = c++11 -pthread
 
 using namespace std;
-
-
 
 typedef unsigned long ulong;
 //typedef unsigned long long int ulong;			// if using windows OS uncomment this.
@@ -152,10 +152,10 @@ public:
 		c->RWMISS = c->read_miss + c->write_miss;
 		return a->RWMISS + b->RWMISS + c->RWMISS;
 	}
-	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint _bsize, uint _asso, string filename = "_Results_SpiltCache.csv")
+	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint _bsize, uint _asso, string filename = filename00)
 	{
 		char buffer[200];
-		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,A0:%d,B0:%d,C0:%d,A1:%d,B1:%d,C1:%d,A2:%d,B2:%d,C2:%d, ,", dm, dk, dn, _bsize, _asso, A0->n_sets,B0->n_sets,C0->n_sets, A1->n_sets, B1->n_sets, C1->n_sets, A2->n_sets, B2->n_sets, C2->n_sets );
+		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d, ,", dm, dk, dn, _bsize, _asso);
 
 		string I = "";
 
@@ -261,17 +261,10 @@ void gustavson0(Cache* A2, Cache* B2, Cache* C2, int M, int K, int N, ulong A, u
 
 static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 {
-	//std::srand(std::time(nullptr)); // use current time as seed for random generator
-
-	// total size xxx Kb , xxx B block size, xxx Associative in each set, LRU replacement Policy:
-
-
 	int M = dm;
 	int K = dk;
 	int N = dn;
 
-	//float *As = new float[4, 4];
-	//k0 = (ulong)&As;
 	ulong k0, k1, k2;
 	k0 = 0xF0000000;
 	k1 = k0 + (ulong)(M * K * sizeof(float));		//k1 = k0 + (ulong)(M * K * sizeof(float) + (rand() % 16) * 256);
@@ -282,17 +275,17 @@ static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 	ulong C = k2;
 
 
-	int sizeA = 50;
+	int sizeA = 200;
 	int sizeB = 200;
-	int sizeC = 50;
+	int sizeC = 200;
 
 	Cache A0 = Cache(sizeA, _bsize, _asso);
 	Cache B0 = Cache(sizeB, _bsize, _asso);
 	Cache C0 = Cache(sizeC, _bsize, _asso);
 	///////////////////////////////////////
 
-	sizeA = 50;
-	sizeB = 50;
+	sizeA = 200;
+	sizeB = 200;
 	sizeC = 200;
 
 	Cache A1 = Cache(sizeA, _bsize, _asso);
@@ -300,13 +293,14 @@ static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 	Cache C1 = Cache(sizeC, _bsize, _asso);
 	///////////////////////////////////////
 
-	sizeA = 50;
+	sizeA = 200;
 	sizeB = 200;
-	sizeC = 50;
+	sizeC = 200;
 
 	Cache A2 = Cache(sizeA, _bsize, _asso);
 	Cache B2 = Cache(sizeB, _bsize, _asso);
 	Cache C2 = Cache(sizeC, _bsize, _asso);
+	///////////////////////////////////////
 
 	thread t0(inner_product0, &A0, &B0, &C0, M, K, N, A, B, C);
 	thread t1(outer_product0, &A1, &B1, &C1, M, K, N, A, B, C);
