@@ -13,7 +13,7 @@
 
 //#include <pthread.h>
 #include<thread>		//To compile programs with std::thread support use:
-//g++ -std = c++11 -pthread
+//g++ -std=c++11 -pthread
 
 using namespace std;
 
