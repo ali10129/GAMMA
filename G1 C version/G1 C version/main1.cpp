@@ -70,13 +70,10 @@ private:
 
 		return hit;
 	}
-	string Cache_hitmiss_penalty(ulong read_hitCycle = 1, ulong write_hitCycle = 1, ulong read_missCycle = 10, ulong write_missCycle = 10)
+	string Cache_hitmiss_penalty()
 	{
 		string txt = "";
-		txt += to_string(read_miss) + ",";
-		txt += to_string(write_miss) + ",";
 		txt += to_string(read_miss + write_miss) + ",";
-		//txt += to_string(read_miss + write_miss + read_hit + write_hit) + ",";
 		txt += to_string(number_of_cache_access) + ",";
 		return txt;
 	}
@@ -88,14 +85,14 @@ public:
 
 
 
-	Cache(uint total_cache_size_in_byte, uint block_size_in_byte, uint num_ways)
+	Cache(uint setSize, uint block_size_in_byte, uint num_ways)
 	{
 		n_ways = num_ways;
-		data_cache_size = total_cache_size_in_byte;
+		data_cache_size = setSize * num_ways * block_size_in_byte;
 		block_size = block_size_in_byte;
 		write_hit = write_miss = read_hit = read_miss = 0;
 
-		n_sets = total_cache_size_in_byte / (block_size_in_byte * num_ways);
+		n_sets = setSize; 
 
 		n_hammer = new ulong[n_sets];
 
@@ -155,10 +152,10 @@ public:
 		c->RWMISS = c->read_miss + c->write_miss;
 		return a->RWMISS + b->RWMISS + c->RWMISS;
 	}
-	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso, string filename = "_Results_SpiltCache.csv")
+	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint _bsize, uint _asso, string filename = "_Results_SpiltCache.csv")
 	{
-		char buffer[100];
-		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,==>{IN|OUT|Gus}[A miss|B miss|C miss][R+W miss], ,", dm, dk, dn, cmb, _bsize, _asso);
+		char buffer[200];
+		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,A0:%d,B0:%d,C0:%d,A1:%d,B1:%d,C1:%d,A2:%d,B2:%d,C2:%d, ,", dm, dk, dn, _bsize, _asso, A0->n_sets,B0->n_sets,C0->n_sets, A1->n_sets, B1->n_sets, C1->n_sets, A2->n_sets, B2->n_sets, C2->n_sets );
 
 		string I = "";
 
@@ -176,26 +173,11 @@ public:
 		ofs << I.c_str();
 		ofs.close();
 	}
-	/*
-	static void _Trashing_Results(Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint cmb, uint _bsize, uint _asso)
-	{
-	string txt = "\n==============\n" + to_string(dm) + "," + to_string(dk) + "," + to_string(dn) + "," + to_string(cmb) + "," + to_string(_bsize) + "," + to_string(_asso) + ",\n";
-	txt += "# of set,Inner,Outer,Gustovson,\n";
-	for (int i = 0; i < C0->n_sets; i++)
-	{
-	txt += to_string(i) + "," + to_string(C0->n_hammer[i]) + "," + to_string(C1->n_hammer[i]) + "," + to_string(C2->n_hammer[i]) + ",\n";
-	}
-	ofstream ofs;
-	ofs.open("_Trashing_Results.csv", std::ofstream::out | std::ofstream::app);
-	ofs << txt.c_str();
-	ofs.close();
-	}
-	*/
 };
 
 inline ulong getElementAddress(ulong a0, int i, int j, int column_in_row, int floatsize = sizeof(float))
 {
-	ulong k0 = a0 + (ulong)((i * floatsize*column_in_row) + j);
+	ulong k0 = a0 + (ulong)((i*column_in_row) + j)*floatsize;
 	return k0;
 }
 
@@ -277,7 +259,7 @@ void gustavson0(Cache* A2, Cache* B2, Cache* C2, int M, int K, int N, ulong A, u
 
 
 
-static void delta(uint dm, uint dk, uint dn, uint ckb, uint _bsize, uint _asso)
+static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 {
 	//std::srand(std::time(nullptr)); // use current time as seed for random generator
 
@@ -299,31 +281,28 @@ static void delta(uint dm, uint dk, uint dn, uint ckb, uint _bsize, uint _asso)
 	ulong B = k1;
 	ulong C = k2;
 
-	double MKN = 7;
 
-	int sizeA = 50;//(ckb * 1024) * (1 / MKN);
-	int sizeB = 200;//(ckb * 1024) * (5 / MKN);
-	int sizeC = 50;//(ckb * 1024) * (1 / MKN);
+	int sizeA = 50;
+	int sizeB = 200;
+	int sizeC = 50;
 
 	Cache A0 = Cache(sizeA, _bsize, _asso);
 	Cache B0 = Cache(sizeB, _bsize, _asso);
 	Cache C0 = Cache(sizeC, _bsize, _asso);
 	///////////////////////////////////////
-	MKN = 7;
 
-	sizeA = 50;//(ckb * 1024) * (1 / MKN);
-	sizeB = 50;//(ckb * 1024) * (5 / MKN);
-	sizeC = 200;//(ckb * 1024) * (1 / MKN);
+	sizeA = 50;
+	sizeB = 50;
+	sizeC = 200;
 
 	Cache A1 = Cache(sizeA, _bsize, _asso);
 	Cache B1 = Cache(sizeB, _bsize, _asso);
 	Cache C1 = Cache(sizeC, _bsize, _asso);
 	///////////////////////////////////////
-	MKN = 7;
 
-	sizeA = 50;//(ckb * 1024) * (1 / MKN);
-	sizeB = 200;//(ckb * 1024) * (5 / MKN);
-	sizeC = 50;//(ckb * 1024) * (1 / MKN);
+	sizeA = 50;
+	sizeB = 200;
+	sizeC = 50;
 
 	Cache A2 = Cache(sizeA, _bsize, _asso);
 	Cache B2 = Cache(sizeB, _bsize, _asso);
@@ -338,19 +317,19 @@ static void delta(uint dm, uint dk, uint dn, uint ckb, uint _bsize, uint _asso)
 	t2.join();
 
 	////////////Save results:///////////////////////////////////////////////////////////////////////////////////////////
-	Cache::info(&A0, &A1, &A2, &B0, &B1, &B2, &C0, &C1, &C2, dm, dk, dn, ckb, _bsize, _asso);
+	Cache::info(&A0, &A1, &A2, &B0, &B1, &B2, &C0, &C1, &C2, dm, dk, dn, _bsize, _asso);
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc != 7) {
-		cout << "Invalid input arguments error!\nYou should input 6 integer arguments as:\nM K N Cache_size(KB) Block_size(B) #_of_Ways\nExit -1" << endl;
+	if (argc != 6) {
+		cout << "Invalid input arguments error!\nYou should input 5 integer arguments as:\nM K N  Block_size(B) #_of_Ways\nExit -1" << endl;
 		//cin >> argc;
 		return -1;
 	}
 
-	uint Data[6];
-	for (int i = 0; i < 6; i++) {
+	uint Data[5];
+	for (int i = 0; i < 5; i++) {
 		std::stringstream ss(argv[i + 1]);
 		if (ss >> Data[i])
 			std::cout << "Arg" << i << " is: " << Data[i] << endl;
@@ -358,7 +337,7 @@ int main(int argc, char *argv[])
 			std::cout << "error";
 	}
 
-	delta(Data[0], Data[1], Data[2], Data[3], Data[4], Data[5]);
+	delta(Data[0], Data[1], Data[2], Data[3], Data[4]);
 
 	cout << "finished successfully!" << endl << endl;
 	cin >> Data[0];
