@@ -1,9 +1,5 @@
-#define filename00 "main1.csv"
-
 #include <iostream>
 
-#include <cstdlib>
-#include <ctime>
 
 #include <fstream>
 
@@ -20,6 +16,9 @@ using namespace std;
 typedef unsigned long ulong;
 //typedef unsigned long long int ulong;			// if using windows OS uncomment this.
 typedef unsigned int uint;
+
+string filename00 = "_result";
+string filename = "_result.csv";
 
 class Cache
 {
@@ -152,7 +151,7 @@ public:
 		c->RWMISS = c->read_miss + c->write_miss;
 		return a->RWMISS + b->RWMISS + c->RWMISS;
 	}
-	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint _bsize, uint _asso, string filename = filename00)
+	static void info(Cache* A0, Cache* A1, Cache* A2, Cache* B0, Cache* B1, Cache* B2, Cache* C0, Cache* C1, Cache* C2, uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 	{
 		char buffer[200];
 		snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d, ,", dm, dk, dn, _bsize, _asso);
@@ -259,7 +258,7 @@ void gustavson0(Cache* A2, Cache* B2, Cache* C2, int M, int K, int N, ulong A, u
 
 
 
-static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
+static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso, int* Sizes)
 {
 	int M = dm;
 	int K = dk;
@@ -275,31 +274,33 @@ static void delta(uint dm, uint dk, uint dn, uint _bsize, uint _asso)
 	ulong C = k2;
 
 
-	int sizeA = 200;
-	int sizeB = 200;
-	int sizeC = 200;
+	int sizeAi = Sizes[0];
+	int sizeBi = Sizes[1];
+	int sizeCi = Sizes[2];
 
-	Cache A0 = Cache(sizeA, _bsize, _asso);
-	Cache B0 = Cache(sizeB, _bsize, _asso);
-	Cache C0 = Cache(sizeC, _bsize, _asso);
+	Cache A0 = Cache(sizeAi, _bsize, _asso);
+	Cache B0 = Cache(sizeBi, _bsize, _asso);
+	Cache C0 = Cache(sizeCi, _bsize, _asso);
 	///////////////////////////////////////
 
-	sizeA = 200;
-	sizeB = 200;
-	sizeC = 200;
+	int sizeAo = Sizes[3];
+	int sizeBo = Sizes[4];
+	int sizeCo = Sizes[5];
 
-	Cache A1 = Cache(sizeA, _bsize, _asso);
-	Cache B1 = Cache(sizeB, _bsize, _asso);
-	Cache C1 = Cache(sizeC, _bsize, _asso);
+
+	Cache A1 = Cache(sizeAo, _bsize, _asso);
+	Cache B1 = Cache(sizeBo, _bsize, _asso);
+	Cache C1 = Cache(sizeCo, _bsize, _asso);
 	///////////////////////////////////////
 
-	sizeA = 200;
-	sizeB = 200;
-	sizeC = 200;
+	int sizeAg = Sizes[6];
+	int sizeBg = Sizes[7];
+	int sizeCg = Sizes[8];
 
-	Cache A2 = Cache(sizeA, _bsize, _asso);
-	Cache B2 = Cache(sizeB, _bsize, _asso);
-	Cache C2 = Cache(sizeC, _bsize, _asso);
+
+	Cache A2 = Cache(sizeAg, _bsize, _asso);
+	Cache B2 = Cache(sizeBg, _bsize, _asso);
+	Cache C2 = Cache(sizeCg, _bsize, _asso);
 	///////////////////////////////////////
 
 	thread t0(inner_product0, &A0, &B0, &C0, M, K, N, A, B, C);
@@ -331,7 +332,26 @@ int main(int argc, char *argv[])
 			std::cout << "error";
 	}
 
-	delta(Data[0], Data[1], Data[2], Data[3], Data[4]);
+	/////////////////
+	string Sizes = "";
+	int k[9];
+	int ar_c = 0, li_c = 0;
+	ifstream ifs;
+	ifs.open("Sizes.txt", std::ofstream::in);
+	while (getline(ifs, Sizes)) {
+		li_c++;
+		cout << "line " << li_c << endl;
+		stringstream stream(Sizes);
+		ar_c = 0;
+		while (stream >> k[ar_c]) {
+			//cout << k[ar_c] << endl;
+			ar_c++;
+		}
+		filename = filename00 + "_line_" +  to_string(li_c) + ".csv";
+		delta(Data[0], Data[1], Data[2], Data[3], Data[4],k);
+	}
+	ifs.close();
+	//////////////////////////
 
 	cout << "finished successfully!" << endl << endl;
 	cin >> Data[0];
